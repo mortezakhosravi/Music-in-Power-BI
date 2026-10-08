@@ -2,7 +2,23 @@
 
 A Power BI visual with one transparent play/pause circle. Drop in a text column of direct audio URLs. Set the circle color from the visual format pane.
 
-The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz).
+The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.2.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
+
+Project page: [mortezakhosravi.github.io/Music-in-Power-BI](https://mortezakhosravi.github.io/Music-in-Power-BI/)
+
+## Report view
+
+The circle is the only painted shape. Play and pause are the icon inside it. Color comes from **Circle > Color** in the visual format pane.
+
+![Play](docs/images/report-play.png)
+
+![Pause](docs/images/report-pause.png)
+
+![Format pane color](docs/images/report-color.png)
+
+![Light circle](docs/images/report-light.png)
+
+These pictures are the packaged visual in report view: an SVG circle on the report canvas, with the visual background and border off. Power BI Desktop is not available in this environment, so the pictures were captured from the same JavaScript package Power BI loads.
 
 ## Use it in Power BI Desktop
 
