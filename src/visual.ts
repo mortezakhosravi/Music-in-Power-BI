@@ -21,6 +21,10 @@ export class Visual implements IVisual {
     private readonly formattingSettingsService: FormattingSettingsService;
     private readonly audio: HTMLAudioElement;
     private readonly button: HTMLButtonElement;
+    private readonly circle: SVGCircleElement;
+    private readonly face: SVGSVGElement;
+    private readonly playGlyph: SVGPathElement;
+    private readonly pauseGlyph: SVGPathElement;
     private formattingSettings: VisualFormattingSettingsModel;
     private urls: string[] = [];
     private index = 0;
@@ -29,8 +33,13 @@ export class Visual implements IVisual {
     constructor(options: VisualConstructorOptions) {
         this.events = options.host.eventService;
         this.formattingSettingsService = new FormattingSettingsService();
+        this.formattingSettings = new VisualFormattingSettingsModel();
         this.target = options.element;
         this.target.replaceChildren();
+        this.target.style.background = "transparent";
+        this.target.style.border = "0";
+        this.target.style.boxShadow = "none";
+        this.target.style.overflow = "visible";
 
         const root = document.createElement("div");
         root.className = "song-player";
@@ -38,7 +47,11 @@ export class Visual implements IVisual {
         this.button = document.createElement("button");
         this.button.type = "button";
         this.button.className = "song-player__button";
-        this.button.append(createIcon("play"), createIcon("pause"));
+        this.face = createFace();
+        this.circle = this.face.querySelector("circle") as SVGCircleElement;
+        this.playGlyph = this.face.querySelector(".song-player__glyph--play") as SVGPathElement;
+        this.pauseGlyph = this.face.querySelector(".song-player__glyph--pause") as SVGPathElement;
+        this.button.append(this.face);
         this.button.addEventListener("click", this.onToggle);
         this.setPlaying(false);
         this.button.disabled = true;
@@ -142,20 +155,22 @@ export class Visual implements IVisual {
     }
 
     private applyColor(): void {
-        const selected = this.formattingSettings.buttonCard.color.value.value;
+        const selected = this.formattingSettings.circleCard.color.value.value;
         const background = toCssColor(selected);
-        this.button.style.backgroundColor = background;
-        this.button.style.color = iconInk(background);
+        this.circle.setAttribute("fill", background);
+        this.face.style.color = iconInk(background);
     }
 
     private layout(width: number, height: number): void {
-        const size = Math.max(36, Math.floor(Math.min(width, height) * 0.72));
+        const size = Math.max(36, Math.floor(Math.min(width, height)));
         this.button.style.width = `${size}px`;
         this.button.style.height = `${size}px`;
     }
 
     private setPlaying(playing: boolean): void {
         this.button.classList.toggle("is-playing", playing);
+        this.playGlyph.toggleAttribute("hidden", playing);
+        this.pauseGlyph.toggleAttribute("hidden", !playing);
         this.button.setAttribute("aria-label", playing ? "Pause" : "Play");
         this.button.setAttribute("aria-pressed", playing ? "true" : "false");
     }
@@ -167,14 +182,26 @@ function readUrls(dataView: DataView | undefined): string[] {
     return readSongUrls(urlColumn?.values ?? []);
 }
 
-function createIcon(kind: "play" | "pause"): SVGSVGElement {
+function createFace(): SVGSVGElement {
     const svg = document.createElementNS(svgNamespace, "svg");
-    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("viewBox", "0 0 100 100");
     svg.setAttribute("aria-hidden", "true");
-    svg.classList.add("song-player__icon", kind === "play" ? "song-player__icon--play" : "song-player__icon--pause");
+    svg.classList.add("song-player__face");
+
+    const circle = document.createElementNS(svgNamespace, "circle");
+    circle.setAttribute("cx", "50");
+    circle.setAttribute("cy", "50");
+    circle.setAttribute("r", "50");
+    circle.classList.add("song-player__circle");
+
+    svg.append(circle, createGlyph("play"), createGlyph("pause"));
+    return svg;
+}
+
+function createGlyph(kind: "play" | "pause"): SVGPathElement {
     const path = document.createElementNS(svgNamespace, "path");
     path.setAttribute("fill", "currentColor");
-    path.setAttribute("d", kind === "play" ? "M8 5.5v13l11-6.5z" : "M6 5h4.2v14H6zm7.8 0H18v14h-4.2z");
-    svg.append(path);
-    return svg;
+    path.setAttribute("d", kind === "play" ? "M40 30v40l34-20z" : "M36 30h10v40H36zm18 0h10v40H54z");
+    path.classList.add("song-player__glyph", kind === "play" ? "song-player__glyph--play" : "song-player__glyph--pause");
+    return path;
 }

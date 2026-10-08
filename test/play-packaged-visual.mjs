@@ -91,7 +91,7 @@ function harness() {
   <link rel="stylesheet" href="visual.css">
   <style>
     body { margin: 0; background: #f4f4f5; font-family: sans-serif; }
-    #host { width: 320px; height: 240px; margin: 24px; background: white; border-radius: 16px; }
+    #host { width: 320px; height: 240px; margin: 24px; background: transparent; }
   </style>
 </head>
 <body>
@@ -120,7 +120,7 @@ function harness() {
         dataViews: [{
           metadata: {
             columns: [{ roles: { url: true } }],
-            objects: color ? { button: { color: { solid: { color } } } } : undefined
+            objects: color ? { circle: { color: { solid: { color } } } } : undefined
           },
           categorical: {
             categories: [{
@@ -131,17 +131,31 @@ function harness() {
         }]
       });
     };
-    window.state = () => ({
-      failures,
-      label: button().getAttribute("aria-label"),
-      pressed: button().getAttribute("aria-pressed"),
-      disabled: button().disabled,
-      background: button().style.backgroundColor,
-      ink: button().style.color,
-      width: button().style.width,
-      paused: audio().paused,
-      src: audio().currentSrc || audio().src || ""
-    });
+    window.state = () => {
+      const circle = host.querySelector("circle");
+      const face = host.querySelector("svg");
+      const formatting = JSON.stringify(visual.getFormattingModel());
+      const player = host.querySelector(".song-player");
+      return {
+        failures,
+        label: button().getAttribute("aria-label"),
+        pressed: button().getAttribute("aria-pressed"),
+        disabled: button().disabled,
+        fill: circle ? circle.getAttribute("fill") : "",
+        ink: face ? face.style.color : "",
+        width: button().style.width,
+        height: button().style.height,
+        shape: circle ? circle.tagName : "",
+        buttonBackground: getComputedStyle(button()).backgroundColor,
+        frameBackground: player ? getComputedStyle(player).backgroundColor : "",
+        shadow: getComputedStyle(button()).boxShadow,
+        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color"),
+        playHidden: host.querySelector(".song-player__glyph--play").hasAttribute("hidden"),
+        pauseHidden: host.querySelector(".song-player__glyph--pause").hasAttribute("hidden"),
+        paused: audio().paused,
+        src: audio().currentSrc || audio().src || ""
+      };
+    };
   </script>
 </body>
 </html>`;
@@ -182,12 +196,14 @@ async function drive(webSocketUrl, port) {
 
     const checks = {
         emptyDisabled: empty.disabled === true && empty.label === "Play",
-        colorApplied: colored.background === "rgb(248, 250, 252)" && colored.ink === "rgb(24, 24, 27)",
-        sized: colored.width === "172px",
+        colorApplied: colored.fill === "#f8fafc" && colored.ink === "rgb(24, 24, 27)",
+        sized: colored.width === "240px" && colored.height === "240px",
+        circleOnly: colored.shape === "circle" && colored.buttonBackground === "rgba(0, 0, 0, 0)" && colored.frameBackground === "rgba(0, 0, 0, 0)" && colored.shadow === "none",
+        colorInFormatPane: colored.colorInFormatPane === true,
         noRenderFailure: colored.failures.length === 0,
-        played: playing.label === "Pause" && playing.paused === false,
+        played: playing.label === "Pause" && playing.paused === false && playing.playHidden === true && playing.pauseHidden === false,
         advancedToNextSong: advanced.src.includes("/b.wav"),
-        paused: paused.label === "Play" && paused.paused === true
+        paused: paused.label === "Play" && paused.paused === true && paused.playHidden === false && paused.pauseHidden === true
     };
     return { ok: Object.values(checks).every(Boolean), checks, empty, colored, playing, advanced, paused };
 }

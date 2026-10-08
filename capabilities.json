@@ -30,8 +30,8 @@
         }
     ],
     "objects": {
-        "button": {
-            "displayName": "Button",
+        "circle": {
+            "displayName": "Circle",
             "properties": {
                 "color": {
                     "displayName": "Color",
@@ -46,6 +46,7 @@
             }
         }
     },
+    "suppressDefaultTitle": true,
     "privileges": [
         {
             "name": "WebAccess",
