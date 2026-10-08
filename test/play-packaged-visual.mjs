@@ -150,8 +150,8 @@ function harness() {
         frameBackground: player ? getComputedStyle(player).backgroundColor : "",
         shadow: getComputedStyle(button()).boxShadow,
         colorInFormatPane: formatting.includes("circle") && formatting.includes("Color"),
-        playHidden: host.querySelector(".song-player__glyph--play").hasAttribute("hidden"),
-        pauseHidden: host.querySelector(".song-player__glyph--pause").hasAttribute("hidden"),
+        playHidden: getComputedStyle(host.querySelector(".song-player__glyph--play")).display === "none",
+        pauseHidden: getComputedStyle(host.querySelector(".song-player__glyph--pause")).display === "none",
         paused: audio().paused,
         src: audio().currentSrc || audio().src || ""
       };

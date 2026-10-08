@@ -169,8 +169,8 @@ export class Visual implements IVisual {
 
     private setPlaying(playing: boolean): void {
         this.button.classList.toggle("is-playing", playing);
-        this.playGlyph.toggleAttribute("hidden", playing);
-        this.pauseGlyph.toggleAttribute("hidden", !playing);
+        this.playGlyph.style.display = playing ? "none" : "inline";
+        this.pauseGlyph.style.display = playing ? "inline" : "none";
         this.button.setAttribute("aria-label", playing ? "Pause" : "Play");
         this.button.setAttribute("aria-pressed", playing ? "true" : "false");
     }
