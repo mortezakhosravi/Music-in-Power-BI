@@ -2,7 +2,7 @@
 
 A Power BI visual with a transparent circle that plays songs from a column of audio URLs. The circle grows and shrinks with the visual’s width and height. Set the color, extra buttons, and auto play from the visual format pane.
 
-The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.7.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
+The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.8.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
 
 Project page: [mortezakhosravi.github.io/Music-in-Power-BI](https://mortezakhosravi.github.io/Music-in-Power-BI/)
 
