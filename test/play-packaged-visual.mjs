@@ -166,13 +166,39 @@ function harness() {
             objects: {
               circle: {
                 color: { solid: { color: "#2563eb" } },
-                design: mode
+                design: mode,
+                theme: "classic"
               }
             }
           }
         }]
       });
       return window.state();
+    };
+    window.useTheme = (theme) => {
+      visual.update({
+        viewport: { width: host.clientWidth, height: host.clientHeight },
+        dataViews: [{
+          metadata: {
+            objects: {
+              circle: {
+                color: { solid: { color: "#2563eb" } },
+                design: "outline",
+                theme
+              }
+            }
+          }
+        }]
+      });
+      const player = host.querySelector(".song-player");
+      const glass = host.querySelector(".song-player__glass");
+      const circle = host.querySelector(".song-player__circle");
+      return {
+        ...window.state(),
+        liquid: player.classList.contains("is-liquid"),
+        glass: glass ? getComputedStyle(glass).display : "",
+        circleDisplay: circle ? getComputedStyle(circle).display : ""
+      };
     };
     window.transport = () => {
       const hostRect = host.getBoundingClientRect();
@@ -239,7 +265,7 @@ function harness() {
         buttonBackground: getComputedStyle(button()).backgroundColor,
         frameBackground: player ? getComputedStyle(player).backgroundColor : "",
         shadow: getComputedStyle(button()).boxShadow,
-        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color") && formatting.includes("Auto play") && formatting.includes("Previous, next, and stop") && formatting.includes("Filled icon") && formatting.includes("Border line icon") && formatting.includes("Same size"),
+        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color") && formatting.includes("Auto play") && formatting.includes("Previous, next, and stop") && formatting.includes("Filled icon") && formatting.includes("Border line icon") && formatting.includes("Same size") && formatting.includes("Icon theme") && formatting.includes("iOS 27 Liquid Glass"),
         musicHidden: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph--music")).display === "none",
         muteHidden: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph--mute")).display === "none",
         extraHidden: getComputedStyle(host.querySelector(".song-player__button--stop")).display === "none",
@@ -301,6 +327,7 @@ async function drive(webSocketUrl, port) {
     const equal = await evaluate(send, `window.showKeys(640, 150, true)`);
     const outline = await evaluate(send, `window.useDesign("outline")`);
     const filled = await evaluate(send, `window.useDesign("filled")`);
+    const liquid = await evaluate(send, `window.useTheme("liquid")`);
     socket.close();
 
     const checks = {
@@ -325,9 +352,10 @@ async function drive(webSocketUrl, port) {
         autoplayOnLoad: started.paused === false && started.music !== "none",
         equalSizes: equal.visible === 3 && equal.main === equal.side && equal.main > 0 && equal.inside === true,
         outlineIcon: outline.fill === "none" && outline.stroke === "#2563eb" && outline.ink === "none" && outline.glyphStroke === "rgb(37, 99, 235)",
-        filledIcon: filled.fill === "#2563eb" && filled.stroke === "none" && filled.ink === "rgb(255, 255, 255)"
+        filledIcon: filled.fill === "#2563eb" && filled.stroke === "none" && filled.ink === "rgb(255, 255, 255)",
+        liquidGlass: liquid.liquid === true && liquid.glass === "inline" && liquid.circleDisplay === "none" && liquid.ink === "none" && liquid.glyphStroke === "rgb(255, 255, 255)"
     };
-    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused, wide, tall, row, column, skipped, stopped, started, equal, outline, filled };
+    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused, wide, tall, row, column, skipped, stopped, started, equal, outline, filled, liquid };
 }
 
 async function waitForValue(send, expression) {

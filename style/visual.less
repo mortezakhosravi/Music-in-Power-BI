@@ -48,6 +48,16 @@
         filter: brightness(1.06);
     }
 
+    .song-player.is-liquid &:not(:disabled) {
+        -webkit-backdrop-filter: blur(18px) saturate(1.7);
+        backdrop-filter: blur(18px) saturate(1.7);
+        filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.18));
+    }
+
+    .song-player.is-liquid &:hover:not(:disabled) {
+        filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.18)) brightness(1.06);
+    }
+
     &:disabled {
         cursor: default;
         opacity: 0.38;
@@ -61,6 +71,19 @@
     &.is-hidden {
         display: none;
     }
+}
+
+.song-player.is-liquid .song-player__circle {
+    display: none;
+}
+
+.song-player__glass {
+    display: none;
+    pointer-events: none;
+}
+
+.song-player.is-liquid .song-player__glass {
+    display: inline;
 }
 
 .song-player__face,

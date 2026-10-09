@@ -12,7 +12,7 @@ import DataView = powerbi.DataView;
 
 import { playerLayout } from "./layout";
 import { VisualFormattingSettingsModel } from "./settings";
-import { iconInk, nextIndex, readChosenColor, readSongUrls, samePlaylist } from "./playlist";
+import { iconInk, nextIndex, parseCssColor, readChosenColor, readSongUrls, samePlaylist, type ParsedColor } from "./playlist";
 
 const svgNamespace = "http://www.w3.org/2000/svg";
 
@@ -21,6 +21,7 @@ type ControlAction = "previous" | "main" | "next" | "stop";
 export class Visual implements IVisual {
     private readonly events: IVisualEventService;
     private readonly target: HTMLElement;
+    private readonly root: HTMLElement;
     private readonly formattingSettingsService: FormattingSettingsService;
     private readonly audio: HTMLAudioElement;
     private readonly controls: HTMLElement;
@@ -54,6 +55,7 @@ export class Visual implements IVisual {
 
         const root = document.createElement("div");
         root.className = "song-player";
+        this.root = root;
 
         this.controls = document.createElement("div");
         this.controls.className = "song-player__controls";
@@ -315,7 +317,10 @@ export class Visual implements IVisual {
         const background = readChosenColor(this.formattingSettings.circleCard.color.value);
         const ink = iconInk(background);
         const outline = this.outlineIcons();
-        this.target.classList.toggle("is-outline", outline);
+        const liquid = this.liquidGlass();
+        const glyphStroke = outline ? (liquid ? ink : background) : "none";
+        this.root.classList.toggle("is-outline", outline);
+        this.root.classList.toggle("is-liquid", liquid);
         this.target.querySelectorAll(".song-player__circle").forEach((node) => {
             const element = node as SVGCircleElement;
             element.setAttribute("r", outline ? "10.6" : "12");
@@ -327,11 +332,18 @@ export class Visual implements IVisual {
             const linePath = element.getAttribute("data-outline") ?? filledPath;
             element.setAttribute("d", outline ? linePath : filledPath);
             element.style.display = "inline";
-            paint(element, outline ? "none" : ink, outline ? background : "none", outline ? "1.8" : "0");
+            const maskId = element.getAttribute("data-mask");
+            if (maskId && !outline) {
+                element.setAttribute("mask", `url(#${maskId})`);
+            }
+            else {
+                element.removeAttribute("mask");
+            }
+            paint(element, outline ? "none" : ink, glyphStroke, outline ? "1.8" : "0");
         });
         this.target.querySelectorAll(".song-player__glyph-gap").forEach((node) => {
             const element = node as SVGElement;
-            if (outline) {
+            if (outline || liquid) {
                 element.style.display = "none";
                 return;
             }
@@ -339,6 +351,7 @@ export class Visual implements IVisual {
             element.setAttribute("d", element.getAttribute("data-filled") ?? "");
             paint(element, background, "none", "0");
         });
+        this.paintGlass(background);
     }
 
     private applyOptions(): void {
@@ -376,6 +389,28 @@ export class Visual implements IVisual {
     private outlineIcons(): boolean {
         const selected = this.formattingSettings.circleCard.design.value;
         return selected?.value === "outline";
+    }
+
+    private liquidGlass(): boolean {
+        const selected = this.formattingSettings.circleCard.theme.value;
+        return selected?.value === "liquid";
+    }
+
+    private paintGlass(color: string): void {
+        const parsed = parseCssColor(color);
+        if (!parsed) {
+            return;
+        }
+        const light = shifted(parsed, 255, 0.62);
+        const mid = shifted(parsed, 255, 0.18);
+        const edge = shifted(parsed, 0, 0.38);
+        const rim = shifted(parsed, 0, 0.55);
+        paintStop(this.target, ".song-player__glass-core", light, "0.78");
+        paintStop(this.target, ".song-player__glass-mid", mid, "0.5");
+        paintStop(this.target, ".song-player__glass-edge", edge, "0.82");
+        this.target.querySelectorAll(".song-player__glass-rim").forEach((node) => {
+            paint(node as SVGElement, "none", rgba(rim, 0.92), "1.25");
+        });
     }
 
     private autoplay(): boolean {
@@ -439,22 +474,25 @@ function createFace(action: ControlAction): SVGSVGElement {
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
     svg.classList.add("song-player__face");
+    const defs = svgEl("defs", {});
+    svg.append(defs);
 
     const circle = document.createElementNS(svgNamespace, "circle");
     circle.setAttribute("cx", "12");
     circle.setAttribute("cy", "12");
     circle.setAttribute("r", "12");
     circle.classList.add("song-player__circle");
-    svg.append(circle);
+    svg.append(circle, createGlass(defs));
 
     if (action === "main") {
+        const maskId = appendMuteMask(defs);
         svg.append(
             iconGroup("music", [{ filled: musicNote, outline: musicNoteLine }]),
             iconGroup("mute", [
                 { filled: muteSpeaker, outline: muteSpeaker },
                 { filled: muteGap, outline: "", gap: true },
                 { filled: muteSlash, outline: muteSlashLine }
-            ])
+            ], maskId)
         );
         return svg;
     }
@@ -465,7 +503,7 @@ function createFace(action: ControlAction): SVGSVGElement {
 }
 
 const musicNote = "M11.81 15.01L11.96 15.31L12.05 15.64L12.08 15.99L12.05 16.36L11.96 16.75L11.81 17.14L11.61 17.52L11.35 17.90L11.05 18.27L10.70 18.61L10.32 18.93L9.90 19.21L9.46 19.46L9.01 19.67L8.55 19.83L8.09 19.94L7.63 20.01L7.20 20.02L6.78 19.99L6.40 19.90L6.05 19.76L5.75 19.58L5.49 19.36L5.29 19.09L5.14 18.79L5.05 18.46L5.02 18.11L5.05 17.74L5.14 17.35L5.29 16.96L5.49 16.58L5.75 16.20L6.05 15.83L6.40 15.49L6.78 15.17L7.20 14.89L7.64 14.64L8.09 14.43L8.55 14.27L9.01 14.16L9.47 14.09L9.90 14.08L10.32 14.11L10.70 14.20L11.05 14.34L11.35 14.52L11.61 14.74L11.81 15.01ZM12.31 4.35L12.31 4.35Q13.20 4.35 13.20 5.24L13.20 15.61Q13.20 16.50 12.31 16.50L12.31 16.50Q11.42 16.50 11.42 15.61L11.42 5.24Q11.42 4.35 12.31 4.35ZM12.15 4.42C15.90 3.95 18.55 6.15 18.05 8.85C17.70 10.75 15.85 11.75 14.45 10.95C15.95 10.25 16.85 8.55 16.55 7.05C16.25 5.65 14.55 5.05 12.15 5.85Z";
-const musicNoteLine = "M11.22 15.38L11.34 15.62L11.41 15.89L11.43 16.17L11.41 16.47L11.33 16.78L11.21 17.10L11.04 17.41L10.83 17.72L10.58 18.02L10.29 18.30L9.98 18.56L9.64 18.79L9.28 18.99L8.91 19.16L8.53 19.29L8.16 19.39L7.79 19.45L7.43 19.46L7.09 19.43L6.78 19.36L6.50 19.26L6.25 19.11L6.04 18.93L5.88 18.72L5.76 18.48L5.69 18.21L5.67 17.93L5.69 17.63L5.77 17.32L5.89 17.00L6.06 16.69L6.27 16.38L6.52 16.08L6.81 15.80L7.12 15.54L7.46 15.31L7.82 15.11L8.19 14.94L8.57 14.81L8.94 14.71L9.31 14.65L9.67 14.64L10.01 14.67L10.32 14.74L10.60 14.84L10.85 14.99L11.06 15.17L11.22 15.38ZM12.31 5.05L12.31 15.55M12.31 5.15C16.05 4.55 17.55 7.35 15.55 10.15";
+const musicNoteLine = "M11.86 15.13A3.35 2.15 -28 1 1 5.94 18.27A3.35 2.15 -28 1 1 11.86 15.13M11.95 6.15L11.95 15.7M11.95 6.35C16.2 5.55 17.9 8.7 15.35 12.05";
 const muteSpeaker = "M8.05 9.25H5.45C4.52 9.25 4.05 9.72 4.05 10.58V13.42C4.05 14.28 4.52 14.75 5.45 14.75H8.05L13.42 19.12C14.02 19.58 14.95 19.16 14.95 18.38V5.62C14.95 4.84 14.02 4.42 13.42 4.88Z";
 const muteGap = "M7.64 19.47L18.94 6.07A1.42 1.42 0 1 1 16.76 4.23L5.46 17.63A1.42 1.42 0 1 1 7.64 19.47Z";
 const muteSlash = "M7.15 19.05L18.45 5.65A0.78 0.78 0 1 1 17.25 4.65L5.95 18.05A0.78 0.78 0 1 1 7.15 19.05Z";
@@ -483,19 +521,101 @@ interface GlyphPart {
     gap?: boolean;
 }
 
-function iconGroup(name: string, parts: readonly GlyphPart[]): SVGGElement {
+let surfaceSerial = 0;
+
+function iconGroup(name: string, parts: readonly GlyphPart[], maskId?: string): SVGGElement {
     const group = document.createElementNS(svgNamespace, "g");
     group.setAttribute("transform", "translate(12 12) scale(0.86) translate(-12 -12)");
     group.classList.add("song-player__glyph", `song-player__glyph--${name}`);
-    for (const part of parts) {
+    parts.forEach((part, index) => {
         const path = document.createElementNS(svgNamespace, "path");
         path.setAttribute("d", part.filled);
         path.setAttribute("data-filled", part.filled);
         path.setAttribute("data-outline", part.outline);
         path.classList.add(part.gap ? "song-player__glyph-gap" : "song-player__glyph-shape");
+        if (maskId && index === 0) {
+            path.setAttribute("data-mask", maskId);
+        }
         group.append(path);
-    }
+    });
     return group;
+}
+
+function createGlass(defs: SVGElement): SVGElement {
+    const id = ++surfaceSerial;
+    const body = svgEl("radialGradient", { id: `song-glass-body-${id}`, cx: "36%", cy: "24%", r: "78%" });
+    body.append(
+        svgEl("stop", { offset: "0%", class: "song-player__glass-core" }),
+        svgEl("stop", { offset: "52%", class: "song-player__glass-mid" }),
+        svgEl("stop", { offset: "100%", class: "song-player__glass-edge" })
+    );
+    const sheen = svgEl("linearGradient", { id: `song-glass-sheen-${id}`, x1: "0", y1: "0", x2: "0", y2: "1" });
+    sheen.append(
+        svgEl("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": "0.95" }),
+        svgEl("stop", { offset: "58%", "stop-color": "#ffffff", "stop-opacity": "0" })
+    );
+    const floor = svgEl("linearGradient", { id: `song-glass-floor-${id}`, x1: "0", y1: "1", x2: "0", y2: "0" });
+    floor.append(
+        svgEl("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": "0.55" }),
+        svgEl("stop", { offset: "55%", "stop-color": "#ffffff", "stop-opacity": "0" })
+    );
+    const filter = svgEl("filter", { id: `song-glass-blur-${id}`, x: "-50%", y: "-50%", width: "200%", height: "200%" });
+    filter.append(svgEl("feGaussianBlur", { in: "SourceGraphic", stdDeviation: "0.5" }));
+    defs.append(body, sheen, floor, filter);
+
+    const group = svgEl("g", { class: "song-player__glass" });
+    group.append(
+        svgEl("circle", { cx: "12", cy: "12.7", r: "10.5", fill: "rgba(0, 0, 0, 0.28)", filter: `url(#song-glass-blur-${id})`, class: "song-player__glass-shadow" }),
+        svgEl("circle", { cx: "12", cy: "12", r: "11.2", fill: `url(#song-glass-body-${id})`, class: "song-player__glass-body" }),
+        svgEl("circle", { cx: "12", cy: "12", r: "11.05", fill: "none", class: "song-player__glass-rim" }),
+        svgEl("ellipse", { cx: "12", cy: "7.15", rx: "6.4", ry: "3.15", fill: `url(#song-glass-sheen-${id})` }),
+        svgEl("ellipse", { cx: "12", cy: "17.4", rx: "5.2", ry: "1.35", fill: `url(#song-glass-floor-${id})` })
+    );
+    return group;
+}
+
+function appendMuteMask(defs: SVGElement): string {
+    const id = `song-mute-${++surfaceSerial}`;
+    const mask = svgEl("mask", { id, maskContentUnits: "userSpaceOnUse" });
+    mask.append(
+        svgEl("rect", { x: "-12", y: "-12", width: "48", height: "48", fill: "#ffffff" }),
+        svgEl("path", { d: muteGap, fill: "#000000" })
+    );
+    defs.append(mask);
+    return id;
+}
+
+function svgEl(name: string, attrs: Record<string, string>): SVGElement {
+    const node = document.createElementNS(svgNamespace, name);
+    for (const [key, value] of Object.entries(attrs)) {
+        if (key === "class") {
+            node.setAttribute("class", value);
+        }
+        else {
+            node.setAttribute(key, value);
+        }
+    }
+    return node;
+}
+
+function shifted(color: ParsedColor, toward: number, amount: number): ParsedColor {
+    const channel = (value: number) => Math.round(value + (toward - value) * amount);
+    const red = channel(color.red);
+    const green = channel(color.green);
+    const blue = channel(color.blue);
+    const hex = [red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("");
+    return { red, green, blue, css: `#${hex}` };
+}
+
+function rgba(color: ParsedColor, alpha: number): string {
+    return `rgba(${color.red}, ${color.green}, ${color.blue}, ${alpha})`;
+}
+
+function paintStop(root: ParentNode, selector: string, color: ParsedColor, opacity: string): void {
+    root.querySelectorAll(selector).forEach((node) => {
+        node.setAttribute("stop-color", color.css);
+        node.setAttribute("stop-opacity", opacity);
+    });
 }
 
 function paint(element: SVGElement, fill: string, stroke: string, strokeWidth: string): void {

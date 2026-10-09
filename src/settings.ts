@@ -53,9 +53,20 @@ class CircleCardSettings extends FormattingSettingsCard {
         value: { value: "filled", displayName: "Filled icon" }
     });
 
+    public theme = new formattingSettings.ItemDropdown({
+        name: "theme",
+        displayName: "Icon theme",
+        description: "Classic flat icons or iOS 27 Liquid Glass",
+        items: [
+            { value: "classic", displayName: "Classic" },
+            { value: "liquid", displayName: "iOS 27 Liquid Glass" }
+        ],
+        value: { value: "classic", displayName: "Classic" }
+    });
+
     public name: string = "circle";
     public displayName: string = "Circle";
-    public slices: FormattingSettingsSlice[] = [this.color, this.design];
+    public slices: FormattingSettingsSlice[] = [this.color, this.design, this.theme];
 }
 
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {

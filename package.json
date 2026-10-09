@@ -1,7 +1,7 @@
 {
   "name": "visual",
   "description": "Play and pause songs from a URL column.",
-  "version": "1.6.0.0",
+  "version": "1.7.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/mortezakhosravi/Music-in-Power-BI"

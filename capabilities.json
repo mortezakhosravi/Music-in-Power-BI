@@ -80,6 +80,21 @@
                             }
                         ]
                     }
+                },
+                "theme": {
+                    "displayName": "Icon theme",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "value": "classic",
+                                "displayName": "Classic"
+                            },
+                            {
+                                "value": "liquid",
+                                "displayName": "iOS 27 Liquid Glass"
+                            }
+                        ]
+                    }
                 }
             }
         }
