@@ -144,15 +144,23 @@
         <img src="images/report-light.png" alt="Report view with a near-white circle and a dark music mark.">
         <figcaption>A light color keeps a dark mark so it stays readable.</figcaption>
       </figure>
+      <figure>
+        <img src="images/report-outline.png" alt="Report view with a circular outline and a line mute icon.">
+        <figcaption>Border line icon. The circle and the mark are strokes in the chosen color.</figcaption>
+      </figure>
+      <figure>
+        <img src="images/report-same-size.png" alt="Report view with four filled circles of the same size.">
+        <figcaption>Same size. Previous, play, next, and stop are equal circles.</figcaption>
+      </figure>
     </div>
 
     <h2>Use it in a report</h2>
     <ol>
       <li>In Power BI Desktop, open the Visualizations pane, choose <strong>Get more visuals</strong> (<code>...</code>), then <strong>Import a visual from a file</strong>.</li>
-      <li>Select <code>songPlayer.pbiviz</code> (version 1.4.0.0) and add <strong>Song Player</strong> to the page.</li>
+      <li>Select <code>songPlayer.pbiviz</code> (version 1.5.0.0) and add <strong>Song Player</strong> to the page.</li>
       <li>Drag the column of direct audio URLs into <strong>Song URL</strong>.</li>
-      <li>Open the visual format pane and set <strong>Circle &gt; Color</strong>. That color fills the circle.</li>
-      <li>Under <strong>Playback</strong>, turn on <strong>Previous, next, and stop</strong> or <strong>Auto play</strong> when you want them.</li>
+      <li>Open the visual format pane and set <strong>Circle &gt; Color</strong>. Under <strong>Circle &gt; Design</strong>, choose <strong>Filled icon</strong> or <strong>Border line icon</strong>.</li>
+      <li>Under <strong>Playback</strong>, turn on <strong>Previous, next, and stop</strong>, <strong>Same size</strong>, or <strong>Auto play</strong> when you want them.</li>
       <li>Under <strong>General &gt; Effects</strong>, turn <strong>Background</strong> and <strong>Visual border</strong> off. Those belong to Power BI’s container. With them off, report view shows only the circles.</li>
       <li>Click the circle to play. Click it again to pause. The circle shows a music note while playing and a mute mark while stopped.</li>
     </ol>

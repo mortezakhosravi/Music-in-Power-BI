@@ -314,10 +314,19 @@ export class Visual implements IVisual {
     private applyColor(): void {
         const background = readChosenColor(this.formattingSettings.circleCard.color.value);
         const ink = iconInk(background);
-        this.target.querySelectorAll(".song-player__circle, .song-player__glyph-shape").forEach((node) => {
+        const outline = this.outlineIcons();
+        this.target.classList.toggle("is-outline", outline);
+        this.target.querySelectorAll(".song-player__circle").forEach((node) => {
+            const element = node as SVGCircleElement;
+            element.setAttribute("r", outline ? "10.6" : "12");
+            paint(element, outline ? "none" : background, outline ? background : "none", outline ? "1.8" : "0");
+        });
+        this.target.querySelectorAll(".song-player__glyph-shape").forEach((node) => {
             const element = node as SVGElement;
-            const color = element.classList.contains("song-player__circle") ? background : ink;
-            paint(element, color);
+            const filledPath = element.getAttribute("data-filled") ?? "";
+            const linePath = element.getAttribute("data-outline") ?? filledPath;
+            element.setAttribute("d", outline ? linePath : filledPath);
+            paint(element, outline ? "none" : ink, outline ? background : "none", outline ? "1.8" : "0");
         });
     }
 
@@ -349,12 +358,21 @@ export class Visual implements IVisual {
         return this.formattingSettings.playbackCard.extraButtons.value === true;
     }
 
+    private sameButtonSize(): boolean {
+        return this.formattingSettings.playbackCard.sameSize.value === true;
+    }
+
+    private outlineIcons(): boolean {
+        const selected = this.formattingSettings.circleCard.design.value;
+        return selected?.value === "outline";
+    }
+
     private autoplay(): boolean {
         return this.formattingSettings.playbackCard.autoplay.value === true;
     }
 
     private layout(width: number, height: number): void {
-        const layout = playerLayout(width, height, this.extraButtons());
+        const layout = playerLayout(width, height, this.extraButtons(), this.sameButtonSize());
         this.controls.classList.toggle("is-column", layout.direction === "column");
         this.controls.style.gap = `${layout.gap}px`;
         this.button.style.width = `${layout.main}px`;
@@ -419,31 +437,46 @@ function createFace(action: ControlAction): SVGSVGElement {
     svg.append(circle);
 
     if (action === "main") {
-        svg.append(iconGroup("music", musicNote), iconGroup("mute", muteSpeaker));
+        svg.append(iconGroup("music", musicNote, musicNoteLine), iconGroup("mute", muteSpeaker, muteLine));
         return svg;
     }
-    svg.append(iconGroup(action, action === "previous" ? previousIcon : action === "next" ? nextIcon : stopIcon));
+    const filled = action === "previous" ? previousIcon : action === "next" ? nextIcon : stopIcon;
+    const line = action === "previous" ? previousLine : action === "next" ? nextLine : stopLine;
+    svg.append(iconGroup(action, filled, line));
     return svg;
 }
 
 const musicNote = "M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z";
+const musicNoteLine = "M15 5.2v8.2M12.2 16.4a2.6 2.6 0 1 0 5.2 0 2.6 2.6 0 1 0-5.2 0";
 const muteSpeaker = "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z";
+const muteLine = "M5 9.4h3.2L12 6v12l-3.8-3.4H5zM15.4 8.6l5.2 6.8M20.6 8.6l-5.2 6.8";
 const previousIcon = "M6 6h2v12H6zm3.5 6 8.5 6V6z";
+const previousLine = "M7 6.2v11.6M16.8 6.2 9 12l7.8 5.8";
 const nextIcon = "M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z";
+const nextLine = "M7.2 6.2 15 12l-7.8 5.8M17 6.2v11.6";
 const stopIcon = "M6 6h12v12H6z";
+const stopLine = "M7.4 7.4h9.2v9.2H7.4z";
 
-function iconGroup(name: string, pathData: string): SVGGElement {
+function iconGroup(name: string, filled: string, outline: string): SVGGElement {
     const group = document.createElementNS(svgNamespace, "g");
     group.setAttribute("transform", "translate(12 12) scale(0.72) translate(-12 -12)");
     group.classList.add("song-player__glyph", `song-player__glyph--${name}`);
     const path = document.createElementNS(svgNamespace, "path");
-    path.setAttribute("d", pathData);
+    path.setAttribute("d", filled);
+    path.setAttribute("data-filled", filled);
+    path.setAttribute("data-outline", outline);
     path.classList.add("song-player__glyph-shape");
     group.append(path);
     return group;
 }
 
-function paint(element: SVGElement, color: string): void {
-    element.setAttribute("fill", color);
-    element.style.setProperty("fill", color, "important");
+function paint(element: SVGElement, fill: string, stroke: string, strokeWidth: string): void {
+    element.setAttribute("fill", fill);
+    element.style.setProperty("fill", fill, "important");
+    element.setAttribute("stroke", stroke);
+    element.style.setProperty("stroke", stroke, "important");
+    element.setAttribute("stroke-width", strokeWidth);
+    element.style.setProperty("stroke-width", strokeWidth, "important");
+    element.style.setProperty("stroke-linejoin", "round", "important");
+    element.style.setProperty("stroke-linecap", "round", "important");
 }

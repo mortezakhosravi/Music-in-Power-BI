@@ -7,7 +7,7 @@ export interface PlayerLayout {
     gap: number;
 }
 
-export function playerLayout(width: number, height: number, showExtra: boolean): PlayerLayout {
+export function playerLayout(width: number, height: number, showExtra: boolean, sameSize = false): PlayerLayout {
     const w = Math.max(0, Math.floor(width));
     const h = Math.max(0, Math.floor(height));
     const direction: PlayerLayout["direction"] = w >= h ? "row" : "column";
@@ -17,6 +17,17 @@ export function playerLayout(width: number, height: number, showExtra: boolean):
 
     const along = direction === "row" ? w : h;
     const across = direction === "row" ? h : w;
+    if (sameSize) {
+        let size = Math.min(along, across);
+        while (size > 0) {
+            const gap = Math.max(1, Math.floor(size * 0.16));
+            if (size * 4 + gap * 3 <= along && size <= across) {
+                return { direction, main: size, side: size, gap };
+            }
+            size -= 1;
+        }
+        return { direction, main: Math.min(w, h), side: 0, gap: 0 };
+    }
     let side = Math.min(along, across);
     while (side > 0) {
         const main = Math.min(across, Math.max(side, Math.floor(side * 1.7)));

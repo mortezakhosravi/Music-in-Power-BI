@@ -2,13 +2,13 @@
 
 A Power BI visual with a transparent circle that plays songs from a column of audio URLs. The circle grows and shrinks with the visual’s width and height. Set the color, extra buttons, and auto play from the visual format pane.
 
-The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.4.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
+The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.5.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
 
 Project page: [mortezakhosravi.github.io/Music-in-Power-BI](https://mortezakhosravi.github.io/Music-in-Power-BI/)
 
 ## Report view
 
-The circle is the painted shape. A music note shows while a song is playing. A mute mark shows while it is stopped. Color comes from **Circle > Color**. **Playback > Previous, next, and stop** adds those circles. **Playback > Auto play** starts the first song when the report loads.
+The circle is the painted shape. A music note shows while a song is playing. A mute mark shows while it is stopped. Color comes from **Circle > Color**. **Circle > Design** chooses **Filled icon** or **Border line icon**. **Playback > Previous, next, and stop** adds those circles. **Playback > Same size** makes every button the same size. **Playback > Auto play** starts the first song when the report loads.
 
 ![Mute mark while stopped](docs/images/report-mute.png)
 
@@ -17,6 +17,10 @@ The circle is the painted shape. A music note shows while a song is playing. A m
 ![Previous, next, and stop](docs/images/report-controls.png)
 
 ![Light circle](docs/images/report-light.png)
+
+![Border line icon](docs/images/report-outline.png)
+
+![Same size buttons](docs/images/report-same-size.png)
 
 These pictures are the packaged visual in report view: an SVG circle on the report canvas, with the visual background and border off. Power BI Desktop is not available in this environment, so the pictures were captured from the same JavaScript package Power BI loads.
 
@@ -27,8 +31,8 @@ These pictures are the packaged visual in report view: an SVG circle on the repo
 3. Choose `dist/songPlayer.pbiviz`.
 4. Add **Song Player** to the page.
 5. Drag the URL column into **Song URL**.
-6. Open the visual’s format pane and set **Circle > Color**. That color is the circle.
-7. Under **Playback**, turn on **Previous, next, and stop** or **Auto play** if you want them. Both start off.
+6. Open the visual’s format pane and set **Circle > Color**. That color is the circle. Under **Circle > Design**, choose **Filled icon** or **Border line icon**.
+7. Under **Playback**, turn on **Previous, next, and stop**, **Same size**, or **Auto play** if you want them. They start off. With **Same size** off, the play circle stays larger than the other buttons.
 8. Under **General > Effects**, turn **Background** and **Visual border** off so the report shows only the circles.
 9. Resize the visual. The circle follows the shorter side. With the extra buttons on, the row or column fits the width and the height.
 10. Click the circle to play. Click it again to pause. The mark is a music note while audio is playing and a mute mark while it is stopped.

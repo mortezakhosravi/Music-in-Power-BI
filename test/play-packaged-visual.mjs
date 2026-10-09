@@ -149,14 +149,30 @@ function harness() {
       });
       return window.state();
     };
-    window.showKeys = (width, height) => {
+    window.showKeys = (width, height, sameSize) => {
       host.style.width = width + "px";
       host.style.height = height + "px";
       visual.update({
         viewport: { width, height },
-        dataViews: [dataView(window.lastUrls, "#18181b", { extraButtons: true })]
+        dataViews: [dataView(window.lastUrls, "#18181b", { extraButtons: true, sameSize: sameSize === true })]
       });
       return window.transport();
+    };
+    window.useDesign = (mode) => {
+      visual.update({
+        viewport: { width: host.clientWidth, height: host.clientHeight },
+        dataViews: [{
+          metadata: {
+            objects: {
+              circle: {
+                color: { solid: { color: "#2563eb" } },
+                design: mode
+              }
+            }
+          }
+        }]
+      });
+      return window.state();
     };
     window.transport = () => {
       const hostRect = host.getBoundingClientRect();
@@ -214,14 +230,16 @@ function harness() {
         pressed: button().getAttribute("aria-pressed"),
         disabled: button().disabled,
         fill: circle ? circle.getAttribute("fill") : "",
+        stroke: circle ? circle.getAttribute("stroke") : "",
         ink: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph-shape")).fill,
+        glyphStroke: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph-shape")).stroke,
         width: button().style.width,
         height: button().style.height,
         shape: circle ? circle.tagName : "",
         buttonBackground: getComputedStyle(button()).backgroundColor,
         frameBackground: player ? getComputedStyle(player).backgroundColor : "",
         shadow: getComputedStyle(button()).boxShadow,
-        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color") && formatting.includes("Auto play") && formatting.includes("Previous, next, and stop"),
+        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color") && formatting.includes("Auto play") && formatting.includes("Previous, next, and stop") && formatting.includes("Filled icon") && formatting.includes("Border line icon") && formatting.includes("Same size"),
         musicHidden: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph--music")).display === "none",
         muteHidden: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph--mute")).display === "none",
         extraHidden: getComputedStyle(host.querySelector(".song-player__button--stop")).display === "none",
@@ -280,6 +298,9 @@ async function drive(webSocketUrl, port) {
     const stopped = await waitForFunction(send, `window.state().paused === true && window.state().time === 0 && window.state().label === "Play"`);
     await evaluate(send, `window.bootAutoplay("http://127.0.0.1:${port}/a.wav","http://127.0.0.1:${port}/b.wav")`);
     const started = await waitForValue(send, `(() => { const box = document.querySelector("#auto-host"); if (!box) return null; const song = box.querySelector("audio"); const music = box.querySelector(".song-player__glyph--music"); if (!song || song.paused || !music || getComputedStyle(music).display === "none") return null; return { paused: song.paused, music: getComputedStyle(music).display }; })()`);
+    const equal = await evaluate(send, `window.showKeys(640, 150, true)`);
+    const outline = await evaluate(send, `window.useDesign("outline")`);
+    const filled = await evaluate(send, `window.useDesign("filled")`);
     socket.close();
 
     const checks = {
@@ -301,9 +322,12 @@ async function drive(webSocketUrl, port) {
         columnFits: column.visible === 3 && column.direction === "column" && column.inside === true && column.main >= column.side,
         nextSkips: skipped.src !== beforeSkip && skipped.paused === true,
         stopped: stopped.paused === true && stopped.time === 0 && stopped.musicHidden === true && stopped.muteHidden === false,
-        autoplayOnLoad: started.paused === false && started.music !== "none"
+        autoplayOnLoad: started.paused === false && started.music !== "none",
+        equalSizes: equal.visible === 3 && equal.main === equal.side && equal.main > 0 && equal.inside === true,
+        outlineIcon: outline.fill === "none" && outline.stroke === "#2563eb" && outline.ink === "none" && outline.glyphStroke === "rgb(37, 99, 235)",
+        filledIcon: filled.fill === "#2563eb" && filled.stroke === "none" && filled.ink === "rgb(255, 255, 255)"
     };
-    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused, wide, tall, row, column, skipped, stopped, started };
+    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused, wide, tall, row, column, skipped, stopped, started, equal, outline, filled };
 }
 
 async function waitForValue(send, expression) {

@@ -39,6 +39,12 @@
                         "bool": true
                     }
                 },
+                "sameSize": {
+                    "displayName": "Same size",
+                    "type": {
+                        "bool": true
+                    }
+                },
                 "autoplay": {
                     "displayName": "Auto play",
                     "type": {
@@ -58,6 +64,21 @@
                                 "color": true
                             }
                         }
+                    }
+                },
+                "design": {
+                    "displayName": "Design",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "value": "filled",
+                                "displayName": "Filled icon"
+                            },
+                            {
+                                "value": "outline",
+                                "displayName": "Border line icon"
+                            }
+                        ]
                     }
                 }
             }

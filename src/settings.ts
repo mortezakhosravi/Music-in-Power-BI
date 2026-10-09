@@ -15,6 +15,13 @@ class PlaybackCardSettings extends FormattingSettingsCard {
         value: false
     });
 
+    public sameSize = new formattingSettings.ToggleSwitch({
+        name: "sameSize",
+        displayName: "Same size",
+        description: "Make every button the same size",
+        value: false
+    });
+
     public autoplay = new formattingSettings.ToggleSwitch({
         name: "autoplay",
         displayName: "Auto play",
@@ -24,7 +31,7 @@ class PlaybackCardSettings extends FormattingSettingsCard {
 
     public name: string = "playback";
     public displayName: string = "Playback";
-    public slices: FormattingSettingsSlice[] = [this.extraButtons, this.autoplay];
+    public slices: FormattingSettingsSlice[] = [this.extraButtons, this.sameSize, this.autoplay];
 }
 
 class CircleCardSettings extends FormattingSettingsCard {
@@ -35,9 +42,20 @@ class CircleCardSettings extends FormattingSettingsCard {
         value: { value: defaultButtonColor }
     });
 
+    public design = new formattingSettings.ItemDropdown({
+        name: "design",
+        displayName: "Design",
+        description: "Filled icon or border line icon",
+        items: [
+            { value: "filled", displayName: "Filled icon" },
+            { value: "outline", displayName: "Border line icon" }
+        ],
+        value: { value: "filled", displayName: "Filled icon" }
+    });
+
     public name: string = "circle";
     public displayName: string = "Circle";
-    public slices: FormattingSettingsSlice[] = [this.color];
+    public slices: FormattingSettingsSlice[] = [this.color, this.design];
 }
 
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {

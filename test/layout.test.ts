@@ -19,3 +19,12 @@ test("fits previous, next, and stop inside both axes", () => {
         assert.ok(Math.max(layout.main, layout.side) <= across);
     }
 });
+
+test("uses one size for every button when requested", () => {
+    const layout = playerLayout(640, 150, true, true);
+    assert.equal(layout.main, layout.side);
+    assert.ok(layout.main > 0);
+    assert.ok(layout.main * 4 + layout.gap * 3 <= 640);
+    assert.ok(layout.main <= 150);
+    assert.ok(layout.main < playerLayout(640, 150, true, false).main);
+});
