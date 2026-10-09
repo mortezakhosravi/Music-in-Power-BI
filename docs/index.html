@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Song Player for Power BI</title>
-  <meta name="description" content="A Power BI visual with one transparent play and pause circle. Set the color in the visual format pane.">
+  <meta name="description" content="A Power BI visual with a transparent music circle. Set the color, extra buttons, and auto play in the visual format pane.">
   <style>
     :root {
       color-scheme: light;
@@ -119,7 +119,7 @@
   <main>
     <header>
       <h1>Song Player</h1>
-      <p>One transparent circle for play and pause. The color is set in the Power BI visual format pane, under Circle &gt; Color. There is no rectangle on the visual itself.</p>
+      <p>One transparent circle that follows the visual’s width and height. A music note shows while a song plays, and a mute mark shows while it is stopped. Color, extra buttons, and auto play are set in the Power BI format pane.</p>
       <div class="actions">
         <a class="button" href="songPlayer.pbiviz" download>Download songPlayer.pbiviz</a>
         <a class="button secondary" href="https://github.com/mortezakhosravi/Music-in-Power-BI">Source on GitHub</a>
@@ -129,31 +129,32 @@
     <h2>Report view</h2>
     <div class="shots">
       <figure>
-        <img src="images/report-play.png" alt="Report view with a black circle and a white play triangle. The area around the circle shows the report canvas.">
-        <figcaption>Play. Click the circle to start the first song URL.</figcaption>
+        <img src="images/report-mute.png" alt="Report view with a black circle and a white mute mark. The area around the circle shows the report canvas.">
+        <figcaption>Stopped. The circle shows a mute mark.</figcaption>
       </figure>
       <figure>
-        <img src="images/report-pause.png" alt="Report view with a black circle and two white pause bars.">
-        <figcaption>Pause. The same circle switches to pause while a song is playing.</figcaption>
+        <img src="images/report-music.png" alt="Report view with a black circle and a white music note.">
+        <figcaption>Playing. The same circle shows a music note.</figcaption>
       </figure>
       <figure>
-        <img src="images/report-color.png" alt="Report view with a blue circle and white pause bars.">
-        <figcaption>Color from the format pane. This circle is #2563eb.</figcaption>
+        <img src="images/report-controls.png" alt="Report view with previous, a larger music circle, next, and stop.">
+        <figcaption>Previous, next, and stop, turned on in the format pane.</figcaption>
       </figure>
       <figure>
-        <img src="images/report-light.png" alt="Report view with a near-white circle and a dark play triangle.">
-        <figcaption>A light color keeps a dark icon so the mark stays readable.</figcaption>
+        <img src="images/report-light.png" alt="Report view with a near-white circle and a dark music mark.">
+        <figcaption>A light color keeps a dark mark so it stays readable.</figcaption>
       </figure>
     </div>
 
     <h2>Use it in a report</h2>
     <ol>
       <li>In Power BI Desktop, open the Visualizations pane, choose <strong>Get more visuals</strong> (<code>...</code>), then <strong>Import a visual from a file</strong>.</li>
-      <li>Select <code>songPlayer.pbiviz</code> (version 1.3.0.0) and add <strong>Song Player</strong> to the page.</li>
+      <li>Select <code>songPlayer.pbiviz</code> (version 1.4.0.0) and add <strong>Song Player</strong> to the page.</li>
       <li>Drag the column of direct audio URLs into <strong>Song URL</strong>.</li>
       <li>Open the visual format pane and set <strong>Circle &gt; Color</strong>. That color fills the circle.</li>
-      <li>Under <strong>General &gt; Effects</strong>, turn <strong>Background</strong> and <strong>Visual border</strong> off. Those belong to Power BI’s container. With them off, report view shows only the circle.</li>
-      <li>Click the circle to play. Click it again to pause. When a song ends, the next row starts. After the last song, the circle returns to play.</li>
+      <li>Under <strong>Playback</strong>, turn on <strong>Previous, next, and stop</strong> or <strong>Auto play</strong> when you want them.</li>
+      <li>Under <strong>General &gt; Effects</strong>, turn <strong>Background</strong> and <strong>Visual border</strong> off. Those belong to Power BI’s container. With them off, report view shows only the circles.</li>
+      <li>Click the circle to play. Click it again to pause. The circle shows a music note while playing and a mute mark while stopped.</li>
     </ol>
     <p>Song values need to be direct <code>http</code> or <code>https</code> audio links, such as <code>.mp3</code>, <code>.wav</code>, <code>.ogg</code>, or <code>.m4a</code>. When Power BI asks for web access, choose <strong>Allow</strong>.</p>
 
