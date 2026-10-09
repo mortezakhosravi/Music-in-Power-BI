@@ -149,13 +149,16 @@
     <h2>Use it in a report</h2>
     <ol>
       <li>In Power BI Desktop, open the Visualizations pane, choose <strong>Get more visuals</strong> (<code>...</code>), then <strong>Import a visual from a file</strong>.</li>
-      <li>Select <code>songPlayer.pbiviz</code> (version 1.2.0.0) and add <strong>Song Player</strong> to the page.</li>
+      <li>Select <code>songPlayer.pbiviz</code> (version 1.3.0.0) and add <strong>Song Player</strong> to the page.</li>
       <li>Drag the column of direct audio URLs into <strong>Song URL</strong>.</li>
       <li>Open the visual format pane and set <strong>Circle &gt; Color</strong>. That color fills the circle.</li>
       <li>Under <strong>General &gt; Effects</strong>, turn <strong>Background</strong> and <strong>Visual border</strong> off. Those belong to Power BI’s container. With them off, report view shows only the circle.</li>
       <li>Click the circle to play. Click it again to pause. When a song ends, the next row starts. After the last song, the circle returns to play.</li>
     </ol>
-    <p>Song values need to be direct <code>http</code> or <code>https</code> audio links, such as <code>.mp3</code>, <code>.wav</code>, <code>.ogg</code>, or <code>.m4a</code>.</p>
+    <p>Song values need to be direct <code>http</code> or <code>https</code> audio links, such as <code>.mp3</code>, <code>.wav</code>, <code>.ogg</code>, or <code>.m4a</code>. When Power BI asks for web access, choose <strong>Allow</strong>.</p>
+
+    <h2>Example data</h2>
+    <p><a href="songs.csv">songs.csv</a> is a three-song table. Use <strong>Get data &gt; Text/CSV</strong>, then drag <strong>Song URL</strong> into the visual. The files are SoundHelix example tracks, so the links point at the audio itself.</p>
   </main>
 </body>
 </html>
