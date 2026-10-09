@@ -30,6 +30,23 @@
         }
     ],
     "objects": {
+        "playback": {
+            "displayName": "Playback",
+            "properties": {
+                "extraButtons": {
+                    "displayName": "Previous, next, and stop",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "autoplay": {
+                    "displayName": "Auto play",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
         "circle": {
             "displayName": "Circle",
             "properties": {

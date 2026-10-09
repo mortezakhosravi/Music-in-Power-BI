@@ -40,6 +40,7 @@ const chrome = spawn("google-chrome", [
     "--disable-gpu",
     "--disable-dev-shm-usage",
     "--autoplay-policy=no-user-gesture-required",
+    "--window-size=1400,1200",
     "--remote-debugging-port=9333",
     "--user-data-dir=" + join(root, "chrome"),
     `http://127.0.0.1:${port}/harness.html`
@@ -112,23 +113,83 @@ function harness() {
         }
       }
     });
-    const button = () => host.querySelector("button");
+    const button = () => host.querySelector(".song-player__button--main");
     const audio = () => host.querySelector("audio");
+    const dataView = (urls, color, playback) => {
+      const objects = {};
+      if (color) objects.circle = { color: { solid: { color } } };
+      if (playback) objects.playback = playback;
+      return {
+        metadata: {
+          columns: [{ roles: { url: true } }],
+          objects: Object.keys(objects).length ? objects : undefined
+        },
+        categorical: {
+          categories: [{
+            source: { roles: { url: true }, displayName: "Song URL" },
+            values: urls
+          }]
+        }
+      };
+    };
     window.render = (urls, color) => {
+      window.lastUrls = urls;
       visual.update({
-        viewport: { width: 320, height: 240 },
-        dataViews: [{
-          metadata: {
-            columns: [{ roles: { url: true } }],
-            objects: color ? { circle: { color: { solid: { color } } } } : undefined
-          },
-          categorical: {
-            categories: [{
-              source: { roles: { url: true }, displayName: "Song URL" },
-              values: urls
-            }]
+        viewport: { width: host.clientWidth, height: host.clientHeight },
+        dataViews: [dataView(urls, color)]
+      });
+    };
+    window.resizeTo = (width, height) => {
+      host.style.width = width + "px";
+      host.style.height = height + "px";
+      visual.update({
+        type: 4,
+        viewport: { width, height },
+        dataViews: [{ metadata: {} }]
+      });
+      return window.state();
+    };
+    window.showKeys = (width, height) => {
+      host.style.width = width + "px";
+      host.style.height = height + "px";
+      visual.update({
+        viewport: { width, height },
+        dataViews: [dataView(window.lastUrls, "#18181b", { extraButtons: true })]
+      });
+      return window.transport();
+    };
+    window.transport = () => {
+      const hostRect = host.getBoundingClientRect();
+      const sides = ["previous", "next", "stop"].map((name) => host.querySelector(".song-player__button--" + name));
+      const visible = sides.filter((item) => getComputedStyle(item).display !== "none");
+      const boxes = [button(), ...visible].map((item) => item.getBoundingClientRect());
+      return {
+        visible: visible.length,
+        direction: host.querySelector(".song-player__controls").classList.contains("is-column") ? "column" : "row",
+        main: Math.round(button().getBoundingClientRect().width),
+        side: visible.length ? Math.round(visible[0].getBoundingClientRect().width) : 0,
+        labels: sides.map((item) => item.getAttribute("aria-label")).join(","),
+        inside: boxes.every((box) => box.width > 0 && box.left >= hostRect.left - 1 && box.right <= hostRect.right + 1 && box.top >= hostRect.top - 1 && box.bottom <= hostRect.bottom + 1)
+      };
+    };
+    window.bootAutoplay = (first, second) => {
+      const box = document.createElement("div");
+      box.id = "auto-host";
+      box.style.cssText = "width:180px;height:180px";
+      document.body.append(box);
+      const autoVisual = plugin.create({
+        element: box,
+        host: {
+          eventService: {
+            renderingStarted() {},
+            renderingFinished() {},
+            renderingFailed(_options, message) { failures.push(String(message)); }
           }
-        }]
+        }
+      });
+      autoVisual.update({
+        viewport: { width: 180, height: 180 },
+        dataViews: [dataView([first, second], "#18181b", { autoplay: true })]
       });
     };
     window.keepSongs = (color) => {
@@ -153,17 +214,19 @@ function harness() {
         pressed: button().getAttribute("aria-pressed"),
         disabled: button().disabled,
         fill: circle ? circle.getAttribute("fill") : "",
-        ink: getComputedStyle(host.querySelector(".song-player__glyph--play")).fill,
+        ink: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph-shape")).fill,
         width: button().style.width,
         height: button().style.height,
         shape: circle ? circle.tagName : "",
         buttonBackground: getComputedStyle(button()).backgroundColor,
         frameBackground: player ? getComputedStyle(player).backgroundColor : "",
         shadow: getComputedStyle(button()).boxShadow,
-        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color"),
-        playHidden: getComputedStyle(host.querySelector(".song-player__glyph--play")).display === "none",
-        pauseHidden: getComputedStyle(host.querySelector(".song-player__glyph--pause")).display === "none",
+        colorInFormatPane: formatting.includes("circle") && formatting.includes("Color") && formatting.includes("Auto play") && formatting.includes("Previous, next, and stop"),
+        musicHidden: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph--music")).display === "none",
+        muteHidden: getComputedStyle(host.querySelector(".song-player__button--main .song-player__glyph--mute")).display === "none",
+        extraHidden: getComputedStyle(host.querySelector(".song-player__button--stop")).display === "none",
         paused: audio().paused,
+        time: audio().currentTime,
         src: audio().currentSrc || audio().src || ""
       };
     };
@@ -206,6 +269,17 @@ async function drive(webSocketUrl, port) {
     const kept = await evaluate(send, `window.keepSongs("#facc15")`);
     await clickButton(send);
     const paused = await waitForFunction(send, `window.state().label === "Play" && window.state().paused === true`);
+    const wide = await evaluate(send, `window.resizeTo(500, 80)`);
+    const tall = await evaluate(send, `window.resizeTo(70, 360)`);
+    const row = await evaluate(send, `window.showKeys(640, 150)`);
+    const column = await evaluate(send, `window.showKeys(150, 640)`);
+    const beforeSkip = await evaluate(send, `window.state().src`);
+    await clickControl(send, ".song-player__button--next");
+    const skipped = await waitForFunction(send, `window.state().src && window.state().src !== ${JSON.stringify(beforeSkip)} && window.state().paused === true`);
+    await clickControl(send, ".song-player__button--stop");
+    const stopped = await waitForFunction(send, `window.state().paused === true && window.state().time === 0 && window.state().label === "Play"`);
+    await evaluate(send, `window.bootAutoplay("http://127.0.0.1:${port}/a.wav","http://127.0.0.1:${port}/b.wav")`);
+    const started = await waitForValue(send, `(() => { const box = document.querySelector("#auto-host"); if (!box) return null; const song = box.querySelector("audio"); const music = box.querySelector(".song-player__glyph--music"); if (!song || song.paused || !music || getComputedStyle(music).display === "none") return null; return { paused: song.paused, music: getComputedStyle(music).display }; })()`);
     socket.close();
 
     const checks = {
@@ -214,15 +288,40 @@ async function drive(webSocketUrl, port) {
         iconSurvivesHostFill: forced.ink === "rgb(24, 24, 27)" && forced.fill === "#f8fafc",
         blueIconIsWhite: blue.fill === "#2563eb" && blue.ink === "rgb(255, 255, 255)",
         styleUpdateKeepsSongs: kept.disabled === false && kept.fill === "#facc15" && kept.ink === "rgb(24, 24, 27)" && kept.src.includes("/b.wav") && kept.paused === false,
-        sized: colored.width === "240px" && colored.height === "240px",
+        sized: colored.width === "240px" && colored.height === "240px" && colored.extraHidden === true,
+        respondsToWidth: wide.width === "80px" && wide.height === "80px" && wide.extraHidden === true,
+        respondsToHeight: tall.width === "70px" && tall.height === "70px",
         circleOnly: colored.shape === "circle" && colored.buttonBackground === "rgba(0, 0, 0, 0)" && colored.frameBackground === "rgba(0, 0, 0, 0)" && colored.shadow === "none",
         colorInFormatPane: colored.colorInFormatPane === true,
         noRenderFailure: colored.failures.length === 0,
-        played: playing.label === "Pause" && playing.paused === false && playing.playHidden === true && playing.pauseHidden === false,
+        played: playing.label === "Pause" && playing.paused === false && playing.musicHidden === false && playing.muteHidden === true,
         advancedToNextSong: advanced.src.includes("/b.wav"),
-        paused: paused.label === "Play" && paused.paused === true && paused.playHidden === false && paused.pauseHidden === true
+        paused: paused.label === "Play" && paused.paused === true && paused.musicHidden === true && paused.muteHidden === false,
+        rowFits: row.visible === 3 && row.direction === "row" && row.inside === true && row.main >= row.side && row.labels === "Previous,Next,Stop",
+        columnFits: column.visible === 3 && column.direction === "column" && column.inside === true && column.main >= column.side,
+        nextSkips: skipped.src !== beforeSkip && skipped.paused === true,
+        stopped: stopped.paused === true && stopped.time === 0 && stopped.musicHidden === true && stopped.muteHidden === false,
+        autoplayOnLoad: started.paused === false && started.music !== "none"
     };
-    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused };
+    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused, wide, tall, row, column, skipped, stopped, started };
+}
+
+async function waitForValue(send, expression) {
+    const started = Date.now();
+    let latest;
+    while (Date.now() - started < 8000) {
+        try {
+            latest = await evaluate(send, expression);
+            if (latest) {
+                return latest;
+            }
+        }
+        catch {
+            // The page is still loading.
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw new Error(`Timed out waiting for ${expression}. Last: ${JSON.stringify(latest)}`);
 }
 
 async function evaluate(send, expression) {
@@ -234,7 +333,11 @@ async function evaluate(send, expression) {
 }
 
 async function clickButton(send) {
-    const point = await evaluate(send, `(() => { const rect = document.querySelector("button").getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; })()`);
+    await clickControl(send, ".song-player__button--main");
+}
+
+async function clickControl(send, selector) {
+    const point = await evaluate(send, `(() => { const rect = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; })()`);
     await send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
     await send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
 }

@@ -1,7 +1,7 @@
 {
   "name": "visual",
   "description": "Play and pause songs from a URL column.",
-  "version": "1.3.0.0",
+  "version": "1.4.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/mortezakhosravi/Music-in-Power-BI"
@@ -12,7 +12,7 @@
     "start": "pbiviz start",
     "package": "pbiviz package --no-stats && latest=$(ls -t dist/songPlayerED*.pbiviz | head -n 1) && cp \"$latest\" dist/songPlayer.pbiviz && find dist -name 'songPlayerED*.pbiviz' -delete",
     "lint": "npx eslint .",
-    "test": "node --experimental-strip-types --test test/playlist.test.ts"
+    "test": "node --experimental-strip-types --test test/playlist.test.ts test/layout.test.ts"
   },
   "dependencies": {
     "powerbi-visuals-api": "5.11.1",

@@ -7,6 +7,26 @@ import FormattingSettingsCard = formattingSettings.SimpleCard;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
 
+class PlaybackCardSettings extends FormattingSettingsCard {
+    public extraButtons = new formattingSettings.ToggleSwitch({
+        name: "extraButtons",
+        displayName: "Previous, next, and stop",
+        description: "Show previous, next, and stop",
+        value: false
+    });
+
+    public autoplay = new formattingSettings.ToggleSwitch({
+        name: "autoplay",
+        displayName: "Auto play",
+        description: "Start playing when the report loads",
+        value: false
+    });
+
+    public name: string = "playback";
+    public displayName: string = "Playback";
+    public slices: FormattingSettingsSlice[] = [this.extraButtons, this.autoplay];
+}
+
 class CircleCardSettings extends FormattingSettingsCard {
     public color = new formattingSettings.ColorPicker({
         name: "color",
@@ -22,5 +42,6 @@ class CircleCardSettings extends FormattingSettingsCard {
 
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     public circleCard = new CircleCardSettings();
-    public cards = [this.circleCard];
+    public playbackCard = new PlaybackCardSettings();
+    public cards = [this.circleCard, this.playbackCard];
 }

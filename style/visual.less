@@ -12,6 +12,21 @@
     overflow: visible;
 }
 
+.song-player__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.song-player__controls.is-column {
+    flex-direction: column;
+}
+
 .song-player__button {
     box-sizing: border-box;
     margin: 0;
@@ -41,6 +56,10 @@
     &:focus,
     &:focus-visible {
         outline: none;
+    }
+
+    &.is-hidden {
+        display: none;
     }
 }
 
