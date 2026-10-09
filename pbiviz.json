@@ -4,7 +4,7 @@
         "displayName": "Song Player",
         "guid": "songPlayerED067EDB172C4618852C870330D69695",
         "visualClassName": "Visual",
-        "version": "1.5.0.0",
+        "version": "1.6.0.0",
         "description": "Play and pause songs from a table column of audio URLs.",
         "supportUrl": "https://github.com/mortezakhosravi/Music-in-Power-BI",
         "gitHubUrl": "https://github.com/mortezakhosravi/Music-in-Power-BI"
@@ -22,5 +22,5 @@
     "capabilities": "capabilities.json",
     "dependencies": null,
     "stringResources": [],
-    "version": "1.5.0.0"
+    "version": "1.6.0.0"
 }

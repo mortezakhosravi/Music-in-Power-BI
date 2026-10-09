@@ -2,13 +2,13 @@
 
 A Power BI visual with a transparent circle that plays songs from a column of audio URLs. The circle grows and shrinks with the visual’s width and height. Set the color, extra buttons, and auto play from the visual format pane.
 
-The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.5.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
+The packaged visual is [dist/songPlayer.pbiviz](dist/songPlayer.pbiviz) (version 1.6.0.0). The same file is on the project page: [songPlayer.pbiviz](https://mortezakhosravi.github.io/Music-in-Power-BI/songPlayer.pbiviz).
 
 Project page: [mortezakhosravi.github.io/Music-in-Power-BI](https://mortezakhosravi.github.io/Music-in-Power-BI/)
 
 ## Report view
 
-The circle is the painted shape. A music note shows while a song is playing. A mute mark shows while it is stopped. Color comes from **Circle > Color**. **Circle > Design** chooses **Filled icon** or **Border line icon**. **Playback > Previous, next, and stop** adds those circles. **Playback > Same size** makes every button the same size. **Playback > Auto play** starts the first song when the report loads.
+The circle is the painted shape. A music note shows while a song is playing. A mute mark shows while it is stopped. Color comes from **Circle > Color**. **Circle > Design** chooses **Filled icon** or **Border line icon**. Both styles use iOS-style marks: a music note, a speaker with a slash, previous, next, and a rounded stop. **Playback > Previous, next, and stop** adds those circles. **Playback > Same size** makes every button the same size. **Playback > Auto play** starts the first song when the report loads.
 
 ![Mute mark while stopped](docs/images/report-mute.png)
 

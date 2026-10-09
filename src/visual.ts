@@ -326,7 +326,18 @@ export class Visual implements IVisual {
             const filledPath = element.getAttribute("data-filled") ?? "";
             const linePath = element.getAttribute("data-outline") ?? filledPath;
             element.setAttribute("d", outline ? linePath : filledPath);
+            element.style.display = "inline";
             paint(element, outline ? "none" : ink, outline ? background : "none", outline ? "1.8" : "0");
+        });
+        this.target.querySelectorAll(".song-player__glyph-gap").forEach((node) => {
+            const element = node as SVGElement;
+            if (outline) {
+                element.style.display = "none";
+                return;
+            }
+            element.style.display = "inline";
+            element.setAttribute("d", element.getAttribute("data-filled") ?? "");
+            paint(element, background, "none", "0");
         });
     }
 
@@ -437,36 +448,53 @@ function createFace(action: ControlAction): SVGSVGElement {
     svg.append(circle);
 
     if (action === "main") {
-        svg.append(iconGroup("music", musicNote, musicNoteLine), iconGroup("mute", muteSpeaker, muteLine));
+        svg.append(
+            iconGroup("music", [{ filled: musicNote, outline: musicNoteLine }]),
+            iconGroup("mute", [
+                { filled: muteSpeaker, outline: muteSpeaker },
+                { filled: muteGap, outline: "", gap: true },
+                { filled: muteSlash, outline: muteSlashLine }
+            ])
+        );
         return svg;
     }
     const filled = action === "previous" ? previousIcon : action === "next" ? nextIcon : stopIcon;
     const line = action === "previous" ? previousLine : action === "next" ? nextLine : stopLine;
-    svg.append(iconGroup(action, filled, line));
+    svg.append(iconGroup(action, [{ filled, outline: line }]));
     return svg;
 }
 
-const musicNote = "M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z";
-const musicNoteLine = "M15 5.2v8.2M12.2 16.4a2.6 2.6 0 1 0 5.2 0 2.6 2.6 0 1 0-5.2 0";
-const muteSpeaker = "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z";
-const muteLine = "M5 9.4h3.2L12 6v12l-3.8-3.4H5zM15.4 8.6l5.2 6.8M20.6 8.6l-5.2 6.8";
-const previousIcon = "M6 6h2v12H6zm3.5 6 8.5 6V6z";
-const previousLine = "M7 6.2v11.6M16.8 6.2 9 12l7.8 5.8";
-const nextIcon = "M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z";
-const nextLine = "M7.2 6.2 15 12l-7.8 5.8M17 6.2v11.6";
-const stopIcon = "M6 6h12v12H6z";
-const stopLine = "M7.4 7.4h9.2v9.2H7.4z";
+const musicNote = "M11.81 15.01L11.96 15.31L12.05 15.64L12.08 15.99L12.05 16.36L11.96 16.75L11.81 17.14L11.61 17.52L11.35 17.90L11.05 18.27L10.70 18.61L10.32 18.93L9.90 19.21L9.46 19.46L9.01 19.67L8.55 19.83L8.09 19.94L7.63 20.01L7.20 20.02L6.78 19.99L6.40 19.90L6.05 19.76L5.75 19.58L5.49 19.36L5.29 19.09L5.14 18.79L5.05 18.46L5.02 18.11L5.05 17.74L5.14 17.35L5.29 16.96L5.49 16.58L5.75 16.20L6.05 15.83L6.40 15.49L6.78 15.17L7.20 14.89L7.64 14.64L8.09 14.43L8.55 14.27L9.01 14.16L9.47 14.09L9.90 14.08L10.32 14.11L10.70 14.20L11.05 14.34L11.35 14.52L11.61 14.74L11.81 15.01ZM12.31 4.35L12.31 4.35Q13.20 4.35 13.20 5.24L13.20 15.61Q13.20 16.50 12.31 16.50L12.31 16.50Q11.42 16.50 11.42 15.61L11.42 5.24Q11.42 4.35 12.31 4.35ZM12.15 4.42C15.90 3.95 18.55 6.15 18.05 8.85C17.70 10.75 15.85 11.75 14.45 10.95C15.95 10.25 16.85 8.55 16.55 7.05C16.25 5.65 14.55 5.05 12.15 5.85Z";
+const musicNoteLine = "M11.22 15.38L11.34 15.62L11.41 15.89L11.43 16.17L11.41 16.47L11.33 16.78L11.21 17.10L11.04 17.41L10.83 17.72L10.58 18.02L10.29 18.30L9.98 18.56L9.64 18.79L9.28 18.99L8.91 19.16L8.53 19.29L8.16 19.39L7.79 19.45L7.43 19.46L7.09 19.43L6.78 19.36L6.50 19.26L6.25 19.11L6.04 18.93L5.88 18.72L5.76 18.48L5.69 18.21L5.67 17.93L5.69 17.63L5.77 17.32L5.89 17.00L6.06 16.69L6.27 16.38L6.52 16.08L6.81 15.80L7.12 15.54L7.46 15.31L7.82 15.11L8.19 14.94L8.57 14.81L8.94 14.71L9.31 14.65L9.67 14.64L10.01 14.67L10.32 14.74L10.60 14.84L10.85 14.99L11.06 15.17L11.22 15.38ZM12.31 5.05L12.31 15.55M12.31 5.15C16.05 4.55 17.55 7.35 15.55 10.15";
+const muteSpeaker = "M8.05 9.25H5.45C4.52 9.25 4.05 9.72 4.05 10.58V13.42C4.05 14.28 4.52 14.75 5.45 14.75H8.05L13.42 19.12C14.02 19.58 14.95 19.16 14.95 18.38V5.62C14.95 4.84 14.02 4.42 13.42 4.88Z";
+const muteGap = "M7.64 19.47L18.94 6.07A1.42 1.42 0 1 1 16.76 4.23L5.46 17.63A1.42 1.42 0 1 1 7.64 19.47Z";
+const muteSlash = "M7.15 19.05L18.45 5.65A0.78 0.78 0 1 1 17.25 4.65L5.95 18.05A0.78 0.78 0 1 1 7.15 19.05Z";
+const muteSlashLine = "M6.55 18.55L17.85 5.15";
+const previousIcon = "M5.67 5.15L5.68 5.15Q6.80 5.15 6.80 6.27L6.80 17.73Q6.80 18.85 5.68 18.85L5.67 18.85Q4.55 18.85 4.55 17.73L4.55 6.27Q4.55 5.15 5.67 5.15ZM10.27 10.79L16.20 6.85Q18.45 5.35 18.45 8.06L18.45 15.94Q18.45 18.65 16.20 17.15L10.27 13.21Q8.45 12.00 10.27 10.79Z";
+const previousLine = "M5.68 6.35L5.68 17.65M10.57 11.05L15.76 7.56Q17.55 6.35 17.55 8.51L17.55 15.49Q17.55 17.65 15.76 16.44L10.57 12.95Q9.15 12.00 10.57 11.05Z";
+const nextIcon = "M18.32 5.15L18.33 5.15Q19.45 5.15 19.45 6.27L19.45 17.73Q19.45 18.85 18.33 18.85L18.32 18.85Q17.20 18.85 17.20 17.73L17.20 6.27Q17.20 5.15 18.32 5.15ZM13.73 10.79L7.80 6.85Q5.55 5.35 5.55 8.06L5.55 15.94Q5.55 18.65 7.80 17.15L13.73 13.21Q15.55 12.00 13.73 10.79Z";
+const nextLine = "M18.32 6.35L18.32 17.65M13.43 11.05L8.24 7.56Q6.45 6.35 6.45 8.51L6.45 15.49Q6.45 17.65 8.24 16.44L13.43 12.95Q14.85 12.00 13.43 11.05Z";
+const stopIcon = "M8.55 5.85L15.45 5.85Q18.15 5.85 18.15 8.55L18.15 15.45Q18.15 18.15 15.45 18.15L8.55 18.15Q5.85 18.15 5.85 15.45L5.85 8.55Q5.85 5.85 8.55 5.85Z";
+const stopLine = "M8.90 6.75L15.10 6.75Q17.25 6.75 17.25 8.90L17.25 15.10Q17.25 17.25 15.10 17.25L8.90 17.25Q6.75 17.25 6.75 15.10L6.75 8.90Q6.75 6.75 8.90 6.75Z";
 
-function iconGroup(name: string, filled: string, outline: string): SVGGElement {
+interface GlyphPart {
+    filled: string;
+    outline: string;
+    gap?: boolean;
+}
+
+function iconGroup(name: string, parts: readonly GlyphPart[]): SVGGElement {
     const group = document.createElementNS(svgNamespace, "g");
-    group.setAttribute("transform", "translate(12 12) scale(0.72) translate(-12 -12)");
+    group.setAttribute("transform", "translate(12 12) scale(0.86) translate(-12 -12)");
     group.classList.add("song-player__glyph", `song-player__glyph--${name}`);
-    const path = document.createElementNS(svgNamespace, "path");
-    path.setAttribute("d", filled);
-    path.setAttribute("data-filled", filled);
-    path.setAttribute("data-outline", outline);
-    path.classList.add("song-player__glyph-shape");
-    group.append(path);
+    for (const part of parts) {
+        const path = document.createElementNS(svgNamespace, "path");
+        path.setAttribute("d", part.filled);
+        path.setAttribute("data-filled", part.filled);
+        path.setAttribute("data-outline", part.outline);
+        path.classList.add(part.gap ? "song-player__glyph-gap" : "song-player__glyph-shape");
+        group.append(path);
+    }
     return group;
 }
 
