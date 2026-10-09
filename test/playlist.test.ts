@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { iconInk, isAudioUrl, nextIndex, readSongUrls, samePlaylist, toCssColor } from "../src/playlist.ts";
+import { iconInk, isAudioUrl, nextIndex, readChosenColor, readSongUrls, samePlaylist, toCssColor } from "../src/playlist.ts";
 
 const httpSong = ["htt", "p://cdn.example/a.mp3"].join("");
 
@@ -40,9 +40,26 @@ test("advances until the last song", () => {
     assert.equal(nextIndex(0, 0), null);
 });
 
-test("picks readable icon ink and falls back on a bad color", () => {
+test("keeps a quoted or padded url", () => {
+    const urls = readSongUrls([
+        " \"https://cdn.example/one.mp3\" ",
+        "<https://cdn.example/two.mp3>"
+    ]);
+    assert.deepEqual(urls, [
+        "https://cdn.example/one.mp3",
+        "https://cdn.example/two.mp3"
+    ]);
+});
+
+test("picks icon ink that contrasts with the chosen color", () => {
     assert.equal(toCssColor("#F8FAFC"), "#f8fafc");
+    assert.equal(toCssColor("#fff"), "#ffffff");
+    assert.equal(toCssColor("rgb(37, 99, 235)"), "#2563eb");
     assert.equal(iconInk("#f8fafc"), "#18181b");
+    assert.equal(iconInk("#facc15"), "#18181b");
     assert.equal(iconInk("#18181b"), "#ffffff");
+    assert.equal(iconInk("#2563eb"), "#ffffff");
     assert.equal(toCssColor("blue"), "#18181b");
+    assert.equal(readChosenColor({ value: "#FACC15" }), "#facc15");
+    assert.equal(readChosenColor({ solid: { color: "rgb(24, 24, 27)" } }), "#18181b");
 });

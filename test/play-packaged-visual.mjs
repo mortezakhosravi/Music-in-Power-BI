@@ -131,9 +131,20 @@ function harness() {
         }]
       });
     };
+    window.keepSongs = (color) => {
+      visual.update({
+        type: 16,
+        viewport: { width: 320, height: 240 },
+        dataViews: [{
+          metadata: {
+            objects: color ? { circle: { color: { solid: { color } } } } : undefined
+          }
+        }]
+      });
+      return window.state();
+    };
     window.state = () => {
       const circle = host.querySelector("circle");
-      const face = host.querySelector("svg");
       const formatting = JSON.stringify(visual.getFormattingModel());
       const player = host.querySelector(".song-player");
       return {
@@ -142,7 +153,7 @@ function harness() {
         pressed: button().getAttribute("aria-pressed"),
         disabled: button().disabled,
         fill: circle ? circle.getAttribute("fill") : "",
-        ink: face ? face.style.color : "",
+        ink: getComputedStyle(host.querySelector(".song-player__glyph--play")).fill,
         width: button().style.width,
         height: button().style.height,
         shape: circle ? circle.tagName : "",
@@ -187,9 +198,12 @@ async function drive(webSocketUrl, port) {
 
     const empty = await evaluate(send, `window.render([], undefined); window.state()`);
     const colored = await evaluate(send, `window.render(["http://127.0.0.1:${port}/a.wav","http://127.0.0.1:${port}/b.wav"], "#f8fafc"); window.state()`);
+    const forced = await evaluate(send, `(() => { const style = document.createElement("style"); style.textContent = "path{fill:rgb(255,0,0)!important}"; document.head.append(style); return window.state(); })()`);
+    const blue = await evaluate(send, `window.render(["http://127.0.0.1:${port}/a.wav","http://127.0.0.1:${port}/b.wav"], "#2563eb"); window.state()`);
     await clickButton(send);
     const playing = await waitForFunction(send, `window.state().label === "Pause" && window.state().paused === false`);
     const advanced = await waitForFunction(send, `window.state().src.includes("/b.wav")`);
+    const kept = await evaluate(send, `window.keepSongs("#facc15")`);
     await clickButton(send);
     const paused = await waitForFunction(send, `window.state().label === "Play" && window.state().paused === true`);
     socket.close();
@@ -197,6 +211,9 @@ async function drive(webSocketUrl, port) {
     const checks = {
         emptyDisabled: empty.disabled === true && empty.label === "Play",
         colorApplied: colored.fill === "#f8fafc" && colored.ink === "rgb(24, 24, 27)",
+        iconSurvivesHostFill: forced.ink === "rgb(24, 24, 27)" && forced.fill === "#f8fafc",
+        blueIconIsWhite: blue.fill === "#2563eb" && blue.ink === "rgb(255, 255, 255)",
+        styleUpdateKeepsSongs: kept.disabled === false && kept.fill === "#facc15" && kept.ink === "rgb(24, 24, 27)" && kept.src.includes("/b.wav") && kept.paused === false,
         sized: colored.width === "240px" && colored.height === "240px",
         circleOnly: colored.shape === "circle" && colored.buttonBackground === "rgba(0, 0, 0, 0)" && colored.frameBackground === "rgba(0, 0, 0, 0)" && colored.shadow === "none",
         colorInFormatPane: colored.colorInFormatPane === true,
@@ -205,7 +222,7 @@ async function drive(webSocketUrl, port) {
         advancedToNextSong: advanced.src.includes("/b.wav"),
         paused: paused.label === "Play" && paused.paused === true && paused.playHidden === false && paused.pauseHidden === true
     };
-    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, playing, advanced, paused };
+    return { ok: Object.values(checks).every(Boolean), checks, empty, colored, forced, blue, playing, advanced, kept, paused };
 }
 
 async function evaluate(send, expression) {
